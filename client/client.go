@@ -11,6 +11,7 @@ import (
 )
 
 type Client interface {
+	GetTeamsForUser(userId, etag string) ([]*model.Team, *model.Response, error)
 	CreateChannel(channel *model.Channel) (*model.Channel, *model.Response, error)
 	RemoveUserFromChannel(channelId, userId string) (*model.Response, error)
 	GetChannelMembers(channelId string, page, perPage int, etag string) (model.ChannelMembers, *model.Response, error)

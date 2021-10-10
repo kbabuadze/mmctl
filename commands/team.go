@@ -116,6 +116,8 @@ func init() {
 	RenameTeamCmd.Flags().String("display_name", "", "")
 	_ = RenameTeamCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 
+	ListTeamsCmd.Flags().String("username", "string", "If specified, only teams for this user will be listed")
+
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
 		DeleteTeamsCmd,
@@ -198,6 +200,32 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	username, err := cmd.Flags().GetString("username")
+	if err != nil {
+		return err
+	}
+
+	if username != "" {
+		user, _, err := c.GetUserByUsername(username, "")
+		if err != nil {
+			return err
+		}
+
+		teams, _, err := c.GetTeamsForUser(user.Id, "")
+		if err != nil {
+			return err
+		}
+
+		for _, team := range teams {
+			if team.DeleteAt > 0 {
+				printer.Print(team.Name + "(archived)")
+			} else {
+				printer.Print(team.Name)
+			}
+		}
+		return nil
+	}
+
 	page := 0
 	for {
 		teams, _, err := c.GetAllTeams("", page, APILimitMaximum)
